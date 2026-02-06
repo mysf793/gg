@@ -6,100 +6,96 @@
 <title>Multi Timer - Mode Psikopat</title>
 
 <style>
-body { 
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    min-height: 100vh; 
-    background: #0f0f0f; 
-    color: white; 
-    margin: 0; 
-    padding: 20px;
-}
-#control-panel {
-    background: #1e1e1e;
-    padding: 20px;
-    border-radius: 12px;
-    display: none;
-    gap: 10px;
-    margin-bottom: 30px;
-    flex-wrap: wrap;
-    justify-content: center;
-    border: 1px solid #333;
-}
-input {
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #444;
-    background: #2b2b2b;
+body {
+    font-family: Segoe UI, sans-serif;
+    background: #0f0f0f;
     color: white;
-    font-size: 1rem;
-    width: 120px;
-    text-align: center;
-}
-#timers-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
-    width: 100%;
-    max-width: 1200px;
-}
-.timer-card {
-    background: #1a1a1a;
-    border: 1px solid #333;
-    border-radius: 15px;
+    margin: 0;
     padding: 20px;
-    width: 300px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    position: relative;
 }
-.timer-display {
-    font-size: 3.5rem;
-    font-weight: bold;
-    margin: 10px 0;
+
+#control-panel {
+    display: none;
+    gap: 10px;
+    flex-wrap: wrap;
+    background: #1e1e1e;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
 }
-.timer-controls {
-    display: flex;
-    gap: 5px;
-    margin-top: 10px;
+
+input {
+    width: 100px;
+    padding: 8px;
+    background: #2b2b2b;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 6px;
+    text-align: center;
 }
+
 button {
-    padding: 8px 16px;
-    cursor: pointer;
+    padding: 8px 12px;
     border: none;
     border-radius: 6px;
     font-weight: bold;
+    cursor: pointer;
     color: white;
 }
+
 .btn-create { background: #8e44ad; }
-.btn-start { background: #2ecc71; }
-.btn-pause { background: #f39c12; }
 .btn-delete { background: #c0392b; }
-.btn-reset { background: #7f8c8d; }
-.status-badge {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 0.7rem;
-    padding: 3px 6px;
-    border-radius: 4px;
-    background: #333;
+.btn-money-off { background: #555; }
+.btn-money-on { background: #27ae60; }
+
+#timers-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
 }
-.role-indicator {
-    margin-top: 30px;
-    color: #666;
-    font-size: 0.8rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
+
+.timer-card {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 15px;
+    width: 280px;
+    text-align: center;
+    position: relative;
 }
+
+.timer-display {
+    font-size: 3rem;
+    margin: 10px 0;
+}
+
 .money {
-    margin-top: 8px;
-    font-size: 0.9rem;
     color: #2ecc71;
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+.controls {
+    margin-top: 10px;
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+.controls button {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+}
+
+.role {
+    margin-top: 25px;
+    font-size: 0.8rem;
+    color: #666;
+    letter-spacing: 2px;
 }
 </style>
 </head>
@@ -107,159 +103,129 @@ button {
 <body>
 
 <div id="control-panel">
-    <input type="text" id="newName" placeholder="Nama Timer">
-    <input type="number" id="newHours" placeholder="Jam" min="0" value="0">
-    <input type="number" id="newMinutes" placeholder="Menit" min="0" value="1">
-    <button class="btn-create" onclick="createNewTimer()">+ BUAT TIMER</button>
-    <button class="btn-reset" onclick="toggleMoney()">💰 MODE UANG</button>
+    <input id="newName" placeholder="Nama">
+    <input id="newMinutes" type="number" min="1" value="1">
+    <button class="btn-create" onclick="createTimer()">+ TIMER</button>
+
+    <!-- TOMBOL PENTING -->
+    <button id="moneyBtn" class="btn-money-off" onclick="toggleMoney()">
+        💰 1000 / 10 MENIT : OFF
+    </button>
+
     <button class="btn-delete" onclick="deleteAll()">HAPUS SEMUA</button>
 </div>
 
 <div id="timers-container"></div>
-<div class="role-indicator" id="role-status">MODE: VIEWER</div>
+<div class="role" id="roleText">MODE: VIEWER</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, push, set, remove, onValue, update } 
+import { getDatabase, ref, push, onValue, update, remove, set }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-/* FIREBASE CONFIG */
 const firebaseConfig = {
-    apiKey: "AIzaSyCb9y-NzS2coR8UFlWE6Nb3r27baCS1mz4",
-    authDomain: "timer-89517.firebaseapp.com",
-    databaseURL: "https://timer-89517-default-rtdb.firebaseio.com",
-    projectId: "timer-89517",
-    storageBucket: "timer-89517.firebasestorage.app",
-    messagingSenderId: "968176165543",
-    appId: "1:968176165543:web:b75b354a788278df833182"
+  apiKey: "AIzaSyCb9y-NzS2coR8UFlWE6Nb3r27baCS1mz4",
+  authDomain: "timer-89517.firebaseapp.com",
+  databaseURL: "https://timer-89517-default-rtdb.firebaseio.com",
+  projectId: "timer-89517",
+  appId: "1:968176165543:web:b75b354a788278df833182"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const timersRef = ref(db, 'multiTimers');
+const timersRef = ref(db, "multiTimers");
 
-/* MODE PSIKOPAT */
-const urlParams = new URLSearchParams(window.location.search);
+/* MODE */
+const params = new URLSearchParams(location.search);
 let isPsikopat = false;
-let showMoney = false;
+let moneyMode = false;
 
-if (urlParams.get('role') === 'psikopat') {
-    const pwd = prompt("MASUKKAN PASSWORD PSIKOPAT:");
+if (params.get("role") === "psikopat") {
+    const pwd = prompt("PASSWORD:");
     if (pwd === "redmimahal") {
         isPsikopat = true;
-        document.getElementById('control-panel').style.display = 'flex';
-        document.getElementById('role-status').innerText = "MODE: PSIKOPAT";
-        document.getElementById('role-status').style.color = "#e74c3c";
-    } else {
-        alert("PASSWORD SALAH 😡");
+        document.getElementById("control-panel").style.display = "flex";
+        document.getElementById("roleText").innerText = "MODE: PSIKOPAT";
+        document.getElementById("roleText").style.color = "#e74c3c";
     }
 }
 
-/* DATA */
-let localTimers = {};
+/* MONEY TOGGLE */
+window.toggleMoney = () => {
+    moneyMode = !moneyMode;
+    const btn = document.getElementById("moneyBtn");
+    btn.innerText = `💰 1000 / 10 MENIT : ${moneyMode ? "ON" : "OFF"}`;
+    btn.className = moneyMode ? "btn-money-on" : "btn-money-off";
+};
 
-/* LISTEN FIREBASE */
-onValue(timersRef, (snapshot) => {
-    localTimers = snapshot.val() || {};
-    renderTimers(localTimers);
+/* DATA */
+let timers = {};
+
+onValue(timersRef, snap => {
+    timers = snap.val() || {};
+    render();
 });
 
-/* RENDER */
-function renderTimers(data) {
-    const container = document.getElementById('timers-container');
-    container.innerHTML = "";
+function render() {
+    const c = document.getElementById("timers-container");
+    c.innerHTML = "";
 
-    Object.keys(data).forEach(key => {
-        const t = data[key];
-        const m = Math.floor(t.timeLeft / 60).toString().padStart(2,'0');
-        const s = (t.timeLeft % 60).toString().padStart(2,'0');
+    Object.keys(timers).forEach(id => {
+        const t = timers[id];
+        const m = String(Math.floor(t.timeLeft / 60)).padStart(2, "0");
+        const s = String(t.timeLeft % 60).padStart(2, "0");
 
         let moneyHTML = "";
-        if (showMoney) {
+        if (moneyMode) {
             const elapsed = t.initialTime - t.timeLeft;
             const unit = Math.floor(elapsed / 600);
-            const money = unit * 1000;
-            moneyHTML = `<div class="money">💰 Rp ${money.toLocaleString('id-ID')}</div>`;
+            moneyHTML = `<div class="money">💰 Rp ${(unit * 1000).toLocaleString("id-ID")}</div>`;
         }
 
-        let controls = "";
-        if (isPsikopat) {
-            controls = `
-            <div class="timer-controls">
-                <button class="${t.isRunning ? 'btn-pause':'btn-start'}"
-                    onclick="toggleTimer('${key}', ${!t.isRunning})">
-                    ${t.isRunning ? 'PAUSE':'START'}
-                </button>
-                <button class="btn-reset" onclick="resetTimer('${key}', ${t.initialTime})">R</button>
-                <button class="btn-delete" onclick="deleteTimer('${key}')">X</button>
-            </div>`;
-        }
-
-        const card = document.createElement('div');
-        card.className = 'timer-card';
-        card.innerHTML = `
-            <div class="status-badge">${t.isRunning ? 'RUNNING':'PAUSED'}</div>
-            <div style="color:#aaa;">${t.name}</div>
+        c.innerHTML += `
+        <div class="timer-card">
+            <div>${t.name}</div>
             <div class="timer-display">${m}:${s}</div>
             ${moneyHTML}
-            ${controls}
-        `;
-        container.appendChild(card);
+            ${isPsikopat ? `
+            <div class="controls">
+                <button onclick="toggle('${id}', ${!t.isRunning})">${t.isRunning ? "PAUSE" : "START"}</button>
+                <button onclick="reset('${id}', ${t.initialTime})">R</button>
+                <button onclick="del('${id}')">X</button>
+            </div>` : ""}
+        </div>`;
     });
 }
 
-/* LOOP TIMER */
+/* LOOP */
 if (isPsikopat) {
     setInterval(() => {
-        const updates = {};
-        let changed = false;
-
-        Object.keys(localTimers).forEach(key => {
-            const t = localTimers[key];
+        let up = {};
+        Object.keys(timers).forEach(id => {
+            const t = timers[id];
             if (t.isRunning && t.timeLeft > 0) {
-                updates[`multiTimers/${key}/timeLeft`] = t.timeLeft - 1;
-                changed = true;
+                up[`multiTimers/${id}/timeLeft`] = t.timeLeft - 1;
             }
             if (t.isRunning && t.timeLeft <= 1) {
-                updates[`multiTimers/${key}/isRunning`] = false;
+                up[`multiTimers/${id}/isRunning`] = false;
             }
         });
-
-        if (changed) update(ref(db), updates);
+        if (Object.keys(up).length) update(ref(db), up);
     }, 1000);
 }
 
 /* FUNCTIONS */
-window.toggleMoney = () => showMoney = !showMoney;
-
-window.createNewTimer = () => {
-    const name = newName.value || "TANPA NAMA";
-    const h = parseInt(newHours.value) || 0;
-    const m = parseInt(newMinutes.value) || 0;
-    const duration = h * 3600 + m * 60;
-    if (duration <= 0) return alert("WAKTU TIDAK VALID");
-
-    push(timersRef, {
-        name,
-        timeLeft: duration,
-        initialTime: duration,
-        isRunning: false
-    });
+window.createTimer = () => {
+    const name = newName.value || "TIMER";
+    const dur = parseInt(newMinutes.value) * 60;
+    if (!dur) return;
+    push(timersRef, { name, timeLeft: dur, initialTime: dur, isRunning: false });
 };
 
-window.toggleTimer = (key, state) =>
-    update(ref(db, `multiTimers/${key}`), { isRunning: state });
-
-window.resetTimer = (key, init) =>
-    update(ref(db, `multiTimers/${key}`), { timeLeft: init, isRunning: false });
-
-window.deleteTimer = (key) => {
-    if (confirm("Hapus timer ini?")) remove(ref(db, `multiTimers/${key}`));
-};
-
-window.deleteAll = () => {
-    if (confirm("HAPUS SEMUA TIMER?")) set(timersRef, null);
-};
+window.toggle = (id, v) => update(ref(db, `multiTimers/${id}`), { isRunning: v });
+window.reset = (id, i) => update(ref(db, `multiTimers/${id}`), { timeLeft: i, isRunning: false });
+window.del = id => remove(ref(db, `multiTimers/${id}`));
+window.deleteAll = () => set(timersRef, null);
 </script>
 </body>
 </html>
