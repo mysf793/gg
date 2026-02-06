@@ -4,246 +4,396 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Multi Timer + Stopwatch Uang</title>
-
 <style>
-body{
-  font-family:Segoe UI,Tahoma;
-  background:#0f0f0f;
-  color:white;
-  margin:0;
-  padding:20px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
-#main-buttons{
-  display:flex;
-  gap:10px;
-  margin-bottom:20px;
-}
-button{
-  padding:8px 14px;
-  border:none;
-  border-radius:6px;
-  font-weight:bold;
-  color:white;
-  cursor:pointer;
-}
-.btn-add-timer{background:#8e44ad}
-.btn-add-stopwatch{background:#2ecc71}
-.btn-delete-all{background:#c0392b}
-#control-panel{
-  display:none;
-  gap:10px;
-  background:#1e1e1e;
-  padding:15px;
-  border-radius:12px;
-  margin-bottom:25px;
-}
-input{
-  padding:8px;
-  background:#2b2b2b;
-  border:1px solid #444;
-  color:white;
-  border-radius:6px;
-  width:100px;
-}
-#timers-container{
-  display:flex;
-  flex-wrap:wrap;
-  gap:20px;
-  justify-content:center;
-  max-width:1200px;
-}
-.timer-card{
-  width:300px;
-  background:#1a1a1a;
-  border:1px solid #333;
-  border-radius:15px;
-  padding:20px;
-  text-align:center;
-  position:relative;
-}
-.timer-display{
-  font-size:3rem;
-  font-weight:bold;
-}
-.timer-controls{
-  display:flex;
-  gap:5px;
-  justify-content:center;
-  margin-top:10px;
-}
-.status-badge{
-  position:absolute;
-  top:10px;
-  right:10px;
-  font-size:.7rem;
-  padding:3px 6px;
-  background:#333;
-  border-radius:4px;
-}
-.role-indicator{
-  margin-top:30px;
-  font-size:.8rem;
-  color:#666;
-  letter-spacing:2px;
-}
+    :root {
+        --bg-color: #121212;
+        --card-bg: #1e1e1e;
+        --text-main: #ffffff;
+        --text-sec: #b0b0b0;
+        --accent: #3498db;
+        --danger: #e74c3c;
+        --success: #2ecc71;
+    }
+
+    body {
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+    }
+
+    h1 { margin-bottom: 20px; font-size: 1.5rem; color: var(--text-sec); }
+
+    /* Buttons */
+    button {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.1s, opacity 0.2s;
+        color: white;
+    }
+    button:active { transform: scale(0.95); }
+    button:hover { opacity: 0.9; }
+
+    .btn-primary { background: var(--accent); }
+    .btn-success { background: var(--success); }
+    .btn-danger { background: var(--danger); }
+    .btn-warning { background: #f1c40f; color: #333; }
+    
+    #main-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    /* Controls Panel */
+    #control-panel {
+        display: none; /* Hidden by default */
+        gap: 10px;
+        background: #2c2c2c;
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        border: 1px solid #444;
+        align-items: center;
+    }
+    input {
+        padding: 10px;
+        background: #3a3a3a;
+        border: 1px solid #555;
+        color: white;
+        border-radius: 6px;
+    }
+    input[type="number"] { width: 60px; }
+
+    /* Grid Container */
+    #timers-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+        width: 100%;
+        max-width: 1200px;
+        margin-bottom: 30px;
+    }
+
+    /* Cards */
+    .card {
+        background: var(--card-bg);
+        border: 1px solid #333;
+        border-radius: 16px;
+        padding: 20px;
+        width: 280px;
+        text-align: center;
+        position: relative;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+
+    .card.running { border-color: var(--success); }
+    .card.paused { border-color: #555; }
+
+    .timer-display {
+        font-size: 3.5rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        margin: 10px 0;
+    }
+
+    .money-display {
+        font-size: 1.2rem;
+        color: #f1c40f;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+
+    .card-controls {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        margin-top: 15px;
+    }
+
+    .badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+    .bg-green { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+    .bg-red { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
+
+    .role-indicator {
+        margin-top: auto;
+        padding: 20px;
+        font-size: 0.9rem;
+        color: #666;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
 </style>
 </head>
-
 <body>
 
-<div id="main-buttons">
-  <button class="btn-add-timer" onclick="showTimerPanel()">Tambah Timer</button>
-  <button class="btn-add-stopwatch" onclick="showStopwatchControls()">Tambah Stopwatch</button>
-  <button class="btn-delete-all" onclick="deleteAll()">Hapus Semua</button>
-</div>
+    <h1>DASHBOARD WAKTU</h1>
 
-<div id="control-panel">
-  <input id="newName" placeholder="Nama Timer">
-  <input id="newMinutes" type="number" min="1" value="1">
-  <button class="btn-add-timer" onclick="createNewTimer()">+ TIMER</button>
-</div>
+    <div id="main-buttons">
+        <button class="btn-primary" onclick="window.showTimerPanel()">+ Timer Baru</button>
+        <button class="btn-danger" onclick="window.deleteAll()">Reset Semua</button>
+    </div>
 
-<div id="timers-container"></div>
+    <div id="control-panel">
+        <input id="newName" placeholder="Nama Kegiatan (ex: Lari)">
+        <input id="newMinutes" type="number" min="1" value="10" placeholder="Menit">
+        <button class="btn-success" onclick="window.createNewTimer()">Buat Timer</button>
+    </div>
 
-<div class="timer-card">
-  <div class="status-badge" id="sw-status">PAUSED</div>
-  <div style="color:#aaa">STOPWATCH UANG</div>
-  <div class="timer-display" id="sw-time">00:00</div>
-  <div>💰 Rp <span id="sw-money">0</span></div>
+    <div id="timers-container">
+        </div>
 
-  <div class="timer-controls" id="sw-controls" style="display:none">
-    <button class="btn-start" onclick="toggleStopwatch(true)">START</button>
-    <button class="btn-pause" onclick="toggleStopwatch(false)">PAUSE</button>
-    <button class="btn-reset" onclick="resetStopwatch()">RESET</button>
-  </div>
-</div>
+    <div class="card" id="sw-card">
+        <div class="badge" id="sw-status-badge">PAUSED</div>
+        <div style="color:#aaa; font-size:0.9rem; margin-top:5px;">STOPWATCH UANG</div>
+        <div class="timer-display" id="sw-time">00:00</div>
+        <div class="money-display">💰 Rp <span id="sw-money">0</span></div>
 
-<div class="role-indicator" id="role-status">MODE: VIEWER</div>
+        <div class="card-controls" id="sw-controls" style="display:none">
+            <button class="btn-success" onclick="window.toggleStopwatch(true)">START</button>
+            <button class="btn-warning" onclick="window.toggleStopwatch(false)">PAUSE</button>
+            <button class="btn-danger" onclick="window.resetStopwatch()">RESET</button>
+        </div>
+    </div>
+
+    <div class="role-indicator" id="role-status">MODE: VIEWER</div>
 
 <script type="module">
-import {initializeApp} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {getDatabase,ref,push,set,remove,onValue,update} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, push, set, remove, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// Firebase
-const firebaseConfig={
-  apiKey:"AIzaSyCb9y-NzS2coR8UFlWE6Nb3r27baCS1mz4",
-  authDomain:"timer-89517.firebaseapp.com",
-  databaseURL:"https://timer-89517-default-rtdb.firebaseio.com",
-  projectId:"timer-89517"
-};
+    // --- KONFIGURASI FIREBASE ---
+    // Pastikan Rules Firebase Database di set read/write: true untuk testing
+    const firebaseConfig = {
+        apiKey: "AIzaSyCb9y-NzS2coR8UFlWE6Nb3r27baCS1mz4",
+        authDomain: "timer-89517.firebaseapp.com",
+        databaseURL: "https://timer-89517-default-rtdb.firebaseio.com",
+        projectId: "timer-89517"
+    };
 
-const app=initializeApp(firebaseConfig);
-const db=getDatabase(app);
-const timersRef=ref(db,"multiTimers");
-const stopwatchRef=ref(db,"stopwatch");
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const timersRef = ref(db, "multiTimers");
+    const stopwatchRef = ref(db, "stopwatch");
 
-// Role admin
-let isAdmin=false;
-const urlParams=new URLSearchParams(location.search);
-if(urlParams.get("role")==="admin"){
-  const pwd=prompt("MASUKKAN PASSWORD ADMIN:");
-  if(pwd==="redmimahal"){
-    isAdmin=true;
-    document.getElementById("role-status").innerText="MODE: ADMIN";
-    document.getElementById("role-status").style.color="#e74c3c";
-  } else alert("PASSWORD SALAH 😡");
-}
+    // --- STATE LOCAL ---
+    let timers = {};
+    let stopwatch = { seconds: 0, money: 0, isRunning: false };
+    let isAdmin = false;
 
-// Data lokal
-let timers={}, stopwatch={seconds:0,money:0,isRunning:false};
-
-// Firebase listener
-onValue(timersRef, snap=>{
-  timers = snap.val() || {};
-  renderTimers();
-});
-onValue(stopwatchRef, snap=>{
-  stopwatch = snap.val() || {seconds:0,money:0,isRunning:false};
-  renderStopwatch();
-});
-
-// Render timers
-function renderTimers(){
-  const container = document.getElementById("timers-container");
-  container.innerHTML="";
-  Object.keys(timers).forEach(k=>{
-    const t = timers[k];
-    const m = String(Math.floor(t.timeLeft/60)).padStart(2,"0");
-    const s = String(t.timeLeft%60).padStart(2,"0");
-    let controls="";
-    if(isAdmin){
-      controls=`<div class="timer-controls">
-        <button class="${t.isRunning?"btn-pause":"btn-start"}"
-          onclick="toggleTimer('${k}',${!t.isRunning})">
-          ${t.isRunning?"PAUSE":"START"}</button>
-        <button class="btn-reset" onclick="resetTimer('${k}',${t.initialTime})">R</button>
-        <button class="btn-delete" onclick="deleteTimer('${k}')">X</button>
-      </div>`;
+    // --- CEK MODE ADMIN ---
+    // Cara pakai: tambahkan ?role=admin di akhir URL
+    const urlParams = new URLSearchParams(location.search);
+    if (urlParams.get("role") === "admin") {
+        const pwd = prompt("MASUKKAN PASSWORD ADMIN:");
+        if (pwd === "redmimahal") { // Ganti password sesuai keinginan
+            isAdmin = true;
+            document.getElementById("role-status").innerText = "MODE: ADMIN (MASTER)";
+            document.getElementById("role-status").style.color = "#e74c3c";
+            document.getElementById("role-status").style.fontWeight = "bold";
+            
+            // Tampilkan kontrol khusus admin
+            document.getElementById("sw-controls").style.display = "flex";
+        } else {
+            alert("PASSWORD SALAH. AKSES DITOLAK.");
+            window.location.search = ""; // Reload tanpa query
+        }
     }
-    container.innerHTML+=`
-      <div class="timer-card">
-        <div class="status-badge">${t.isRunning?"RUNNING":"PAUSED"}</div>
-        <div style="color:#aaa">${t.name}</div>
-        <div class="timer-display">${m}:${s}</div>
-        ${controls}
-      </div>`;
-  });
-}
 
-// Render stopwatch
-function renderStopwatch(){
-  document.getElementById("sw-time").innerText = `${String(Math.floor(stopwatch.seconds/60)).padStart(2,"0")}:${String(stopwatch.seconds%60).padStart(2,"0")}`;
-  document.getElementById("sw-money").innerText = stopwatch.money;
-  document.getElementById("sw-status").innerText = stopwatch.isRunning?"RUNNING":"PAUSED";
-  if(isAdmin) document.getElementById("sw-controls").style.display="flex";
-}
-
-// Loop timer & stopwatch
-if(isAdmin){
-  setInterval(()=>{
-    const updates={};
-    Object.keys(timers).forEach(k=>{
-      const t = timers[k];
-      if(t.isRunning && t.timeLeft>0){
-        updates[`multiTimers/${k}/timeLeft`] = t.timeLeft-1;
-        if(t.timeLeft<=1) updates[`multiTimers/${k}/isRunning`] = false;
-      }
+    // --- LISTENER FIREBASE (REALTIME UPDATE) ---
+    
+    // 1. Dengar perubahan data Timer
+    onValue(timersRef, (snapshot) => {
+        timers = snapshot.val() || {};
+        renderTimers();
     });
-    if(stopwatch.isRunning){
-      updates["stopwatch/seconds"] = stopwatch.seconds+1;
-      if((stopwatch.seconds+1)%60===0) updates["stopwatch/money"] = stopwatch.money+100;
+
+    // 2. Dengar perubahan data Stopwatch
+    onValue(stopwatchRef, (snapshot) => {
+        stopwatch = snapshot.val() || { seconds: 0, money: 0, isRunning: false };
+        renderStopwatch();
+    });
+
+    // --- FUNGSI RENDER (TAMPILAN) ---
+    function renderTimers() {
+        const container = document.getElementById("timers-container");
+        container.innerHTML = "";
+
+        Object.keys(timers).forEach(key => {
+            const t = timers[key];
+            const minutes = String(Math.floor(t.timeLeft / 60)).padStart(2, "0");
+            const seconds = String(t.timeLeft % 60).padStart(2, "0");
+            
+            // Tentukan style berdasarkan status
+            const statusClass = t.isRunning ? "running" : "paused";
+            const badgeClass = t.isRunning ? "bg-green" : "bg-red";
+            
+            // Kontrol tombol (hanya jika Admin)
+            let controlsHTML = "";
+            if (isAdmin) {
+                controlsHTML = `
+                <div class="card-controls">
+                    <button class="${t.isRunning ? 'btn-warning' : 'btn-success'}" 
+                        onclick="window.toggleTimer('${key}', ${!t.isRunning})">
+                        ${t.isRunning ? 'PAUSE' : 'START'}
+                    </button>
+                    <button class="btn-primary" onclick="window.resetTimer('${key}', ${t.initialTime})">R</button>
+                    <button class="btn-danger" onclick="window.deleteTimer('${key}')">X</button>
+                </div>`;
+            }
+
+            container.innerHTML += `
+            <div class="card ${statusClass}">
+                <div class="badge ${badgeClass}">${t.isRunning ? "RUNNING" : "PAUSED"}</div>
+                <div style="color:#aaa; font-weight:600;">${t.name.toUpperCase()}</div>
+                <div class="timer-display">${minutes}:${seconds}</div>
+                ${controlsHTML}
+            </div>`;
+        });
     }
-    if(Object.keys(updates).length) update(ref(db),updates);
-  },1000);
-}
 
-// Fungsi tombol
-function showTimerPanel(){ if(isAdmin) document.getElementById("control-panel").style.display="flex"; }
-function showStopwatchControls(){ if(isAdmin) document.getElementById("sw-controls").style.display="flex"; }
+    function renderStopwatch() {
+        const m = String(Math.floor(stopwatch.seconds / 60)).padStart(2, "0");
+        const s = String(stopwatch.seconds % 60).padStart(2, "0");
+        
+        document.getElementById("sw-time").innerText = `${m}:${s}`;
+        document.getElementById("sw-money").innerText = stopwatch.money.toLocaleString('id-ID');
+        
+        const badge = document.getElementById("sw-status-badge");
+        const card = document.getElementById("sw-card");
+        
+        if(stopwatch.isRunning) {
+            badge.innerText = "RUNNING";
+            badge.className = "badge bg-green";
+            card.classList.add("running");
+        } else {
+            badge.innerText = "PAUSED";
+            badge.className = "badge bg-red";
+            card.classList.remove("running");
+        }
+    }
 
-// Timer functions
-window.createNewTimer=()=>{
-  const name=document.getElementById("newName").value||"TIMER";
-  const min=parseInt(document.getElementById("newMinutes").value)||0;
-  if(min<=0) return alert("WAKTU SALAH");
-  push(timersRef,{name,timeLeft:min*60,initialTime:min*60,isRunning:false});
-};
-window.toggleTimer=(k,s)=>update(ref(db,`multiTimers/${k}`),{isRunning:s});
-window.resetTimer=(k,i)=>update(ref(db,`multiTimers/${k}`),{timeLeft:i,isRunning:false});
-window.deleteTimer=k=>confirm("Hapus?") && remove(ref(db,`multiTimers/${k}`));
-async function deleteAll(){
-  if(confirm("Hapus semua timers dan reset stopwatch?")){
-    await set(timersRef,null);
-    await set(stopwatchRef,{seconds:0,money:0,isRunning:false});
-  }
-}
+    // --- LOGIC INTERVAL (KHUSUS ADMIN) ---
+    // Hanya admin yang mengirim update waktu ke database
+    if (isAdmin) {
+        setInterval(() => {
+            const updates = {};
+            let hasUpdates = false;
 
-// Stopwatch functions
-window.toggleStopwatch=s=>update(stopwatchRef,{isRunning:s});
-window.resetStopwatch=()=>update(stopwatchRef,{seconds:0,money:0,isRunning:false});
+            // 1. Update Semua Timer
+            Object.keys(timers).forEach(key => {
+                const t = timers[key];
+                if (t.isRunning && t.timeLeft > 0) {
+                    updates[`multiTimers/${key}/timeLeft`] = t.timeLeft - 1;
+                    // Jika waktu habis, matikan timer
+                    if (t.timeLeft - 1 <= 0) {
+                        updates[`multiTimers/${key}/isRunning`] = false;
+                        updates[`multiTimers/${key}/timeLeft`] = 0;
+                    }
+                    hasUpdates = true;
+                }
+            });
+
+            // 2. Update Stopwatch Uang
+            if (stopwatch.isRunning) {
+                const nextSec = stopwatch.seconds + 1;
+                updates["stopwatch/seconds"] = nextSec;
+                
+                // Tambah uang setiap 60 detik (Rp 100)
+                if (nextSec % 60 === 0) {
+                    updates["stopwatch/money"] = stopwatch.money + 100;
+                }
+                hasUpdates = true;
+            }
+
+            // Kirim semua update sekaligus agar efisien
+            if (hasUpdates) {
+                update(ref(db), updates).catch(err => console.error(err));
+            }
+        }, 1000); // Update setiap 1 detik
+    }
+
+    // --- EXPOSE FUNGSI KE WINDOW (Agar bisa dipanggil onclick HTML) ---
+    
+    // UI Helpers
+    window.showTimerPanel = () => {
+        if (!isAdmin) return alert("Hanya Admin yang bisa menambah timer!");
+        const panel = document.getElementById("control-panel");
+        panel.style.display = panel.style.display === "flex" ? "none" : "flex";
+    };
+
+    // Timer Actions
+    window.createNewTimer = () => {
+        if (!isAdmin) return;
+        const name = document.getElementById("newName").value || "Kegiatan";
+        const min = parseInt(document.getElementById("newMinutes").value) || 0;
+        
+        if (min <= 0) return alert("Waktu minimal 1 menit!");
+        
+        push(timersRef, {
+            name: name,
+            timeLeft: min * 60,
+            initialTime: min * 60,
+            isRunning: false
+        });
+        
+        // Reset input
+        document.getElementById("newName").value = "";
+    };
+
+    window.toggleTimer = (key, status) => {
+        update(ref(db, `multiTimers/${key}`), { isRunning: status });
+    };
+
+    window.resetTimer = (key, initial) => {
+        update(ref(db, `multiTimers/${key}`), { 
+            timeLeft: initial, 
+            isRunning: false 
+        });
+    };
+
+    window.deleteTimer = (key) => {
+        if(confirm("Hapus timer ini?")) {
+            remove(ref(db, `multiTimers/${key}`));
+        }
+    };
+
+    // Stopwatch Actions
+    window.toggleStopwatch = (status) => update(stopwatchRef, { isRunning: status });
+    window.resetStopwatch = () => {
+        if(confirm("Reset Stopwatch dan Uang ke 0?")) {
+            update(stopwatchRef, { seconds: 0, money: 0, isRunning: false });
+        }
+    };
+
+    // Global Actions
+    window.deleteAll = async () => {
+        if (!isAdmin) return alert("Akses Ditolak!");
+        if (confirm("⚠️ BAHAYA: Hapus SEMUA timer dan reset stopwatch?")) {
+            await set(timersRef, null);
+            await set(stopwatchRef, { seconds: 0, money: 0, isRunning: false });
+        }
+    };
+
 </script>
 </body>
 </html>
