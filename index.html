@@ -1,127 +1,122 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi Timer - Mode Psikopat</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi Timer - Mode Psikopat</title>
 
-    <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            min-height: 100vh; 
-            background: #0f0f0f; 
-            color: white; 
-            margin: 0; 
-            padding: 20px;
-        }
-
-        #control-panel {
-            background: #1e1e1e;
-            padding: 20px;
-            border-radius: 12px;
-            display: none;
-            gap: 10px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            justify-content: center;
-            border: 1px solid #333;
-        }
-
-        input {
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #444;
-            background: #2b2b2b;
-            color: white;
-            font-size: 1rem;
-            width: 120px;
-            text-align: center;
-        }
-
-        #timers-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        .timer-card {
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 15px;
-            padding: 20px;
-            width: 300px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-        }
-
-        .timer-display {
-            font-size: 3.5rem;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-
-        .timer-controls {
-            display: flex;
-            gap: 5px;
-            margin-top: 10px;
-        }
-
-        button {
-            padding: 8px 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            color: white;
-        }
-
-        .btn-create { background: #8e44ad; }
-        .btn-start { background: #2ecc71; }
-        .btn-pause { background: #f39c12; }
-        .btn-delete { background: #c0392b; }
-        .btn-reset { background: #7f8c8d; }
-
-        .status-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 0.7rem;
-            padding: 3px 6px;
-            border-radius: 4px;
-            background: #333;
-        }
-
-        .role-indicator {
-            margin-top: 30px;
-            color: #666;
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-    </style>
+<style>
+body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    min-height: 100vh; 
+    background: #0f0f0f; 
+    color: white; 
+    margin: 0; 
+    padding: 20px;
+}
+#control-panel {
+    background: #1e1e1e;
+    padding: 20px;
+    border-radius: 12px;
+    display: none;
+    gap: 10px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+    border: 1px solid #333;
+}
+input {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #444;
+    background: #2b2b2b;
+    color: white;
+    font-size: 1rem;
+    width: 120px;
+    text-align: center;
+}
+#timers-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    width: 100%;
+    max-width: 1200px;
+}
+.timer-card {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 15px;
+    padding: 20px;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+.timer-display {
+    font-size: 3.5rem;
+    font-weight: bold;
+    margin: 10px 0;
+}
+.timer-controls {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+}
+button {
+    padding: 8px 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    color: white;
+}
+.btn-create { background: #8e44ad; }
+.btn-start { background: #2ecc71; }
+.btn-pause { background: #f39c12; }
+.btn-delete { background: #c0392b; }
+.btn-reset { background: #7f8c8d; }
+.status-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 0.7rem;
+    padding: 3px 6px;
+    border-radius: 4px;
+    background: #333;
+}
+.role-indicator {
+    margin-top: 30px;
+    color: #666;
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+.money {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: #2ecc71;
+}
+</style>
 </head>
 
 <body>
 
-    <div id="control-panel">
-        <input type="text" id="newName" placeholder="Nama Timer">
-        <input type="number" id="newHours" placeholder="Jam" min="0" value="0">
-        <input type="number" id="newMinutes" placeholder="Menit" min="0" value="1">
-        <button class="btn-create" onclick="createNewTimer()">+ BUAT TIMER</button>
-        <button class="btn-delete" onclick="deleteAll()">HAPUS SEMUA</button>
-    </div>
+<div id="control-panel">
+    <input type="text" id="newName" placeholder="Nama Timer">
+    <input type="number" id="newHours" placeholder="Jam" min="0" value="0">
+    <input type="number" id="newMinutes" placeholder="Menit" min="0" value="1">
+    <button class="btn-create" onclick="createNewTimer()">+ BUAT TIMER</button>
+    <button class="btn-reset" onclick="toggleMoney()">💰 MODE UANG</button>
+    <button class="btn-delete" onclick="deleteAll()">HAPUS SEMUA</button>
+</div>
 
-    <div id="timers-container"></div>
-
-    <div class="role-indicator" id="role-status">MODE: VIEWER</div>
+<div id="timers-container"></div>
+<div class="role-indicator" id="role-status">MODE: VIEWER</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -143,9 +138,10 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const timersRef = ref(db, 'multiTimers');
 
-/* MODE PSIKOPAT + PASSWORD */
+/* MODE PSIKOPAT */
 const urlParams = new URLSearchParams(window.location.search);
 let isPsikopat = false;
+let showMoney = false;
 
 if (urlParams.get('role') === 'psikopat') {
     const pwd = prompt("MASUKKAN PASSWORD PSIKOPAT:");
@@ -159,7 +155,7 @@ if (urlParams.get('role') === 'psikopat') {
     }
 }
 
-/* DATA LOKAL */
+/* DATA */
 let localTimers = {};
 
 /* LISTEN FIREBASE */
@@ -168,18 +164,23 @@ onValue(timersRef, (snapshot) => {
     renderTimers(localTimers);
 });
 
-/* RENDER UI */
+/* RENDER */
 function renderTimers(data) {
     const container = document.getElementById('timers-container');
     container.innerHTML = "";
 
     Object.keys(data).forEach(key => {
         const t = data[key];
-        const m = Math.floor(t.timeLeft / 60).toString().padStart(2, '0');
-        const s = (t.timeLeft % 60).toString().padStart(2, '0');
+        const m = Math.floor(t.timeLeft / 60).toString().padStart(2,'0');
+        const s = (t.timeLeft % 60).toString().padStart(2,'0');
 
-        const card = document.createElement('div');
-        card.className = 'timer-card';
+        let moneyHTML = "";
+        if (showMoney) {
+            const elapsed = t.initialTime - t.timeLeft;
+            const unit = Math.floor(elapsed / 600);
+            const money = unit * 1000;
+            moneyHTML = `<div class="money">💰 Rp ${money.toLocaleString('id-ID')}</div>`;
+        }
 
         let controls = "";
         if (isPsikopat) {
@@ -194,18 +195,20 @@ function renderTimers(data) {
             </div>`;
         }
 
+        const card = document.createElement('div');
+        card.className = 'timer-card';
         card.innerHTML = `
             <div class="status-badge">${t.isRunning ? 'RUNNING':'PAUSED'}</div>
-            <div style="color:#aaa; margin-bottom:5px;">${t.name}</div>
+            <div style="color:#aaa;">${t.name}</div>
             <div class="timer-display">${m}:${s}</div>
+            ${moneyHTML}
             ${controls}
         `;
-
         container.appendChild(card);
     });
 }
 
-/* LOOP TIMER (PSIKOPAT SAJA) */
+/* LOOP TIMER */
 if (isPsikopat) {
     setInterval(() => {
         const updates = {};
@@ -227,12 +230,13 @@ if (isPsikopat) {
 }
 
 /* FUNCTIONS */
+window.toggleMoney = () => showMoney = !showMoney;
+
 window.createNewTimer = () => {
-    const name = document.getElementById('newName').value || "TANPA NAMA";
+    const name = newName.value || "TANPA NAMA";
     const h = parseInt(newHours.value) || 0;
     const m = parseInt(newMinutes.value) || 0;
     const duration = h * 3600 + m * 60;
-
     if (duration <= 0) return alert("WAKTU TIDAK VALID");
 
     push(timersRef, {
@@ -243,16 +247,11 @@ window.createNewTimer = () => {
     });
 };
 
-window.toggleTimer = (key, state) => {
+window.toggleTimer = (key, state) =>
     update(ref(db, `multiTimers/${key}`), { isRunning: state });
-};
 
-window.resetTimer = (key, init) => {
-    update(ref(db, `multiTimers/${key}`), {
-        timeLeft: init,
-        isRunning: false
-    });
-};
+window.resetTimer = (key, init) =>
+    update(ref(db, `multiTimers/${key}`), { timeLeft: init, isRunning: false });
 
 window.deleteTimer = (key) => {
     if (confirm("Hapus timer ini?")) remove(ref(db, `multiTimers/${key}`));
@@ -262,6 +261,5 @@ window.deleteAll = () => {
     if (confirm("HAPUS SEMUA TIMER?")) set(timersRef, null);
 };
 </script>
-
 </body>
 </html>
