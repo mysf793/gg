@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Billing Timer Server-Side</title>
+<title>Billing Timer (Viewer & Admin)</title>
 <style>
     :root {
         --bg: #121212;
@@ -45,6 +45,7 @@
     .btn-success { background: var(--success); }
     .btn-control { width: 40px; height: 40px; font-size: 1.2rem; padding: 0; margin: 0 5px; }
 
+    /* Main Menu (Hidden by default, shown for Admin) */
     #main-menu { display: none; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
 
     /* Input Panels */
@@ -77,18 +78,9 @@
         padding: 5px;
         border-radius: 5px;
     }
-    .mode-switch label {
-        cursor: pointer;
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 0.9rem;
-    }
+    .mode-switch label { cursor: pointer; padding: 5px 10px; border-radius: 4px; font-size: 0.9rem; }
     .mode-switch input[type="radio"] { display: none; }
-    .mode-switch input[type="radio"]:checked + span {
-        color: var(--timer-color);
-        font-weight: bold;
-        text-decoration: underline;
-    }
+    .mode-switch input[type="radio"]:checked + span { color: var(--timer-color); font-weight: bold; text-decoration: underline; }
 
     /* Container */
     #container {
@@ -111,15 +103,16 @@
         position: relative;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        justify-content: center; /* Center content vertically */
         box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        min-height: 150px;
     }
     .card.timer-mode { border-top: 4px solid var(--timer-color); }
     .card.sw-mode { border-top: 4px solid var(--stopwatch-color); }
     
     .card-title { color: #aaa; font-size: 0.9rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-    .time-display { font-size: 3rem; font-weight: 700; font-variant-numeric: tabular-nums; margin: 10px 0; }
-    .money-display { color: var(--warning); font-weight: bold; font-size: 1.2rem; margin-bottom: 15px; }
+    .time-display { font-size: 3.5rem; font-weight: 700; font-variant-numeric: tabular-nums; margin: 10px 0; line-height: 1; }
+    .money-display { color: var(--warning); font-weight: bold; font-size: 1.2rem; margin-bottom: 5px; }
     
     .badge {
         position: absolute;
@@ -132,16 +125,25 @@
     }
     .running .badge { background: var(--success); color: #000; }
     
+    /* Card Controls (Hanya muncul untuk Admin) */
+    .card-controls {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #333;
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+    }
+    
     #role-indicator { margin-top: auto; padding: 30px; color: #555; font-size: 0.8rem; }
     
-    /* Helper classes */
     .hidden { display: none !important; }
     .helper-text { font-size: 0.8rem; color: #888; margin-top: -10px; }
 </style>
 </head>
 <body>
 
-    <h1 style="color:#888;">CLOUD BILLING SYSTEM</h1>
+    <h1 style="color:#888;">BILLING MONITOR</h1>
 
     <div id="main-menu">
         <button class="btn-timer" onclick="togglePanel('timer')">+ Timer Baru</button>
@@ -151,46 +153,42 @@
 
     <div id="panel-timer" class="control-panel">
         <input id="timerName" class="input-name" placeholder="Nama / No. Meja">
-        
         <div class="mode-switch">
             <label>
                 <input type="radio" name="inputMode" value="time" checked onchange="switchInputMode('time')">
-                <span>Input Waktu (Jam:Mnt)</span>
+                <span>Input Waktu</span>
             </label>
             <label>
                 <input type="radio" name="inputMode" value="money" onchange="switchInputMode('money')">
-                <span>Input Uang (Rupiah)</span>
+                <span>Input Rupiah</span>
             </label>
         </div>
-
         <div id="input-time-wrapper" class="input-group">
             <input id="timerHours" class="input-time" type="number" min="0" placeholder="Jam">
             <span style="align-self:center; font-weight:bold;">:</span>
             <input id="timerMinutes" class="input-time" type="number" min="0" placeholder="Mnt">
         </div>
-
         <div id="input-money-wrapper" class="input-group hidden" style="flex-direction:column; align-items:center;">
-            <input id="timerMoney" class="input-money" type="number" min="0" placeholder="Masukkan Nominal (Rp)" step="500">
-            <span class="helper-text">Rate: Rp 1.000 = 12 Menit (Rp 500 = 6 Menit)</span>
+            <input id="timerMoney" class="input-money" type="number" min="0" placeholder="Rp Nominal" step="1000">
+            <span class="helper-text">Rp 1.000 = 12 Menit</span>
         </div>
-
-        <button class="btn-success" style="width:100%" onclick="addTimer()">TAMBAH TIMER</button>
+        <button class="btn-success" style="width:100%" onclick="addTimer()">TAMBAH</button>
     </div>
 
     <div id="panel-stopwatch" class="control-panel">
         <input id="swName" class="input-name" placeholder="Nama Stopwatch">
-        <button class="btn-success" style="width:100%" onclick="addStopwatch()">TAMBAH STOPWATCH</button>
+        <button class="btn-success" style="width:100%" onclick="addStopwatch()">TAMBAH</button>
     </div>
 
     <div id="container">
-        <h3 style="color:#444; margin-top:50px;">MENUNGGU AKSES ADMIN...</h3>
+        <h3 style="color:#444; margin-top:50px;">Memuat Data...</h3>
     </div>
 
-    <div id="role-indicator">MODE: LOCKED</div>
+    <div id="role-indicator">MODE: VIEWER (READ ONLY)</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, set, remove, onValue, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, push, set, remove, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCb9y-NzS2coR8UFlWE6Nb3r27baCS1mz4",
@@ -209,7 +207,7 @@
     let stopwatchData = {};
     let isAdmin = false;
 
-    // --- AUTHENTICATION CHECK ---
+    // --- AUTH CHECK ---
     const urlParams = new URLSearchParams(location.search);
     if (urlParams.get("role") === "admin") {
         const pwd = prompt("MASUKKAN PASSWORD ADMIN:");
@@ -217,31 +215,23 @@
             isAdmin = true;
             document.getElementById("role-indicator").innerText = "MODE: ADMIN (MASTER)";
             document.getElementById("role-indicator").style.color = "#e74c3c";
-            // Tampilkan menu admin
-            document.getElementById("main-menu").style.display = "flex";
+            document.getElementById("main-menu").style.display = "flex"; // Tampilkan menu tambah
         } else {
-            alert("Password Salah! Mode Viewer Aktif (Data Hidden).");
+            alert("Password Salah! Anda masuk sebagai Viewer.");
         }
     }
 
-    // --- DATABASE LISTENERS ---
+    // --- DATABASE LISTENER ---
     onValue(timersRef, (snap) => { timersData = snap.val() || {}; });
     onValue(stopwatchRef, (snap) => { stopwatchData = snap.val() || {}; });
 
-    // --- CORE LOOP ---
+    // --- RENDER LOOP (Setiap 0.2 detik) ---
     setInterval(() => {
         const container = document.getElementById("container");
-        
-        // 1. LOGIKA VISIBILITY: JIKA BUKAN ADMIN, JANGAN TAMPILKAN APAPUN
-        if (!isAdmin) {
-            container.innerHTML = `<h3 style="color:#444; margin-top:50px;">DATA HIDDEN<br><small>Login sebagai admin untuk melihat/mengatur timer.</small></h3>`;
-            return;
-        }
-
         let htmlContent = "";
         const now = Date.now();
 
-        // RENDER TIMER
+        // 1. RENDER TIMER
         Object.keys(timersData).forEach(key => {
             const t = timersData[key];
             let remainingMS = 0;
@@ -258,24 +248,29 @@
             const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2,"0");
             const s = String(totalSeconds % 60).padStart(2,"0");
 
+            // LOGIKA KONTROL: Hanya buat HTML tombol jika ADMIN
+            const controlsHTML = isAdmin ? `
+                <div class="card-controls">
+                    <button class="btn-control ${t.isRunning?'btn-danger':'btn-success'}" 
+                        onclick="window.toggleTimer('${key}', ${!t.isRunning})">
+                        ${t.isRunning ? '⏸' : '▶'}
+                    </button>
+                    <button class="btn-control btn-timer" onclick="window.resetTimer('${key}')">↺</button>
+                    <button class="btn-control btn-danger" onclick="window.deleteItem('timers', '${key}')">✖</button>
+                </div>
+            ` : ''; // Jika Viewer, kosongkan string ini
+
             htmlContent += `
                 <div class="card timer-mode ${t.isRunning && remainingMS > 0 ?'running':''}">
                     <div class="badge">${t.isRunning && remainingMS > 0 ?'JALAN':'PAUSE'}</div>
                     <div class="card-title">${t.name}</div>
                     <div class="time-display">${h}:${m}:${s}</div>
-                    <div class="card-controls">
-                        <button class="btn-control ${t.isRunning?'btn-danger':'btn-success'}" 
-                            onclick="window.toggleTimer('${key}', ${!t.isRunning})">
-                            ${t.isRunning ? '⏸' : '▶'}
-                        </button>
-                        <button class="btn-control btn-timer" onclick="window.resetTimer('${key}')">↺</button>
-                        <button class="btn-control btn-danger" onclick="window.deleteItem('timers', '${key}')">✖</button>
-                    </div>
+                    ${controlsHTML} 
                 </div>
             `;
         });
 
-        // RENDER STOPWATCH
+        // 2. RENDER STOPWATCH
         Object.keys(stopwatchData).forEach(key => {
             const sw = stopwatchData[key];
             let elapsedMS = 0;
@@ -291,24 +286,30 @@
             const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2,"0");
             const s = String(totalSeconds % 60).padStart(2,"0");
             
-            // Hitung Uang untuk Stopwatch (opsional, jika ingin rate yang sama: 12 menit = 1000, 1 menit = ~83.3 rupiah)
-            // Di sini saya biarkan 100 rupiah per menit agar angka bulat, atau bisa disesuaikan.
-            const money = Math.floor(totalSeconds / 60) * 100;
+            // Rate sama: 1000 Rupiah = 12 Menit
+            // Rumus: (Total Menit / 12) * 1000
+            const totalMinutes = totalSeconds / 60;
+            const money = Math.floor((totalMinutes / 12) * 1000); 
+
+            // LOGIKA KONTROL: Hanya buat HTML tombol jika ADMIN
+            const controlsHTML = isAdmin ? `
+                <div class="card-controls">
+                    <button class="btn-control ${sw.isRunning?'btn-danger':'btn-success'}" 
+                        onclick="window.toggleStopwatch('${key}', ${!sw.isRunning})">
+                        ${sw.isRunning ? '⏸' : '▶'}
+                    </button>
+                    <button class="btn-control btn-danger" onclick="window.resetStopwatch('${key}')">↺</button>
+                    <button class="btn-control btn-danger" onclick="window.deleteItem('stopwatches', '${key}')">✖</button>
+                </div>
+            ` : '';
 
             htmlContent += `
                 <div class="card sw-mode ${sw.isRunning?'running':''}">
                     <div class="badge">${sw.isRunning?'JALAN':'PAUSE'}</div>
                     <div class="card-title">${sw.name}</div>
                     <div class="time-display">${h}:${m}:${s}</div>
-                    <div class="money-display">Running Cost: Rp ${money.toLocaleString('id-ID')}</div>
-                    <div class="card-controls">
-                        <button class="btn-control ${sw.isRunning?'btn-danger':'btn-success'}" 
-                            onclick="window.toggleStopwatch('${key}', ${!sw.isRunning})">
-                            ${sw.isRunning ? '⏸' : '▶'}
-                        </button>
-                        <button class="btn-control btn-danger" onclick="window.resetStopwatch('${key}')">↺</button>
-                        <button class="btn-control btn-danger" onclick="window.deleteItem('stopwatches', '${key}')">✖</button>
-                    </div>
+                    <div class="money-display">Rp ${money.toLocaleString('id-ID')}</div>
+                    ${controlsHTML}
                 </div>
             `;
         });
@@ -321,7 +322,7 @@
 
     }, 200);
 
-    // --- UI LOGIC ---
+    // --- FUNGSI UI & LOGIC (SAMA SEPERTI SEBELUMNYA) ---
     window.togglePanel = (type) => {
         document.querySelectorAll('.control-panel').forEach(el => el.style.display = 'none');
         document.getElementById(`panel-${type}`).style.display = 'flex';
@@ -337,43 +338,27 @@
         }
     };
 
-    // --- ADD TIMER LOGIC (MODIFIED) ---
     window.addTimer = () => {
+        if(!isAdmin) return;
         const name = document.getElementById("timerName").value || "Pelanggan";
         const inputMode = document.querySelector('input[name="inputMode"]:checked').value;
         let durationMS = 0;
 
         if (inputMode === 'time') {
-            // MODE WAKTU MANUAL
             const h = parseInt(document.getElementById("timerHours").value) || 0;
             const m = parseInt(document.getElementById("timerMinutes").value) || 0;
             durationMS = ((h * 3600) + (m * 60)) * 1000;
         } else {
-            // MODE UANG (RUPIAH)
             const money = parseInt(document.getElementById("timerMoney").value) || 0;
             if (money <= 0) return alert("Masukkan nominal uang!");
-            
-            // Rumus: 1000 Rupiah = 12 Menit
-            // Jadi 1 Rupiah = 0.012 Menit
+            // Rate: Rp 1000 = 12 Menit
             const totalMinutes = (money / 1000) * 12;
-            
-            // Konversi ke Milidetik
             durationMS = totalMinutes * 60 * 1000;
-            
-            alert(`Dikonversi: Rp ${money.toLocaleString()} = ${totalMinutes} Menit`);
         }
 
-        if (durationMS <= 0) return alert("Durasi tidak valid");
-
-        push(timersRef, {
-            name: name,
-            originalDuration: durationMS,
-            pausedLeft: durationMS,
-            endTime: 0,
-            isRunning: false
-        });
+        if (durationMS <= 0) return alert("Waktu minimal!");
+        push(timersRef, { name, originalDuration: durationMS, pausedLeft: durationMS, endTime: 0, isRunning: false });
         
-        // Reset Inputs
         document.getElementById("timerName").value = "";
         document.getElementById("timerMoney").value = "";
         document.getElementById("timerHours").value = "";
@@ -381,18 +366,14 @@
     };
 
     window.addStopwatch = () => {
+        if(!isAdmin) return;
         const name = document.getElementById("swName").value || "Stopwatch";
-        push(stopwatchRef, {
-            name: name,
-            startTime: 0,
-            accumulated: 0,
-            isRunning: false
-        });
+        push(stopwatchRef, { name, startTime: 0, accumulated: 0, isRunning: false });
         document.getElementById("swName").value = "";
     };
 
-    // --- CONTROLLERS (SAMA SEPERTI SEBELUMNYA) ---
     window.toggleTimer = (key, wantStart) => {
+        if(!isAdmin) return;
         const t = timersData[key];
         const now = Date.now();
         if (wantStart) {
@@ -404,11 +385,13 @@
     };
 
     window.resetTimer = (key) => {
+        if(!isAdmin) return;
         const t = timersData[key];
         update(ref(db, `v3/timers/${key}`), { isRunning: false, pausedLeft: t.originalDuration, endTime: 0 });
     };
 
     window.toggleStopwatch = (key, wantStart) => {
+        if(!isAdmin) return;
         const sw = stopwatchData[key];
         const now = Date.now();
         if (wantStart) {
@@ -420,17 +403,18 @@
     };
 
     window.resetStopwatch = (key) => {
+        if(!isAdmin) return;
         update(ref(db, `v3/stopwatches/${key}`), { isRunning: false, accumulated: 0, startTime: 0 });
     };
 
     window.deleteItem = (type, key) => {
+        if(!isAdmin) return;
         if(confirm("Hapus item ini?")) remove(ref(db, `v3/${type}/${key}`));
     };
 
     window.deleteAll = async () => {
-        if(confirm("RESET SEMUA KE NOL?")) {
-            await set(ref(db, 'v3'), null);
-        }
+        if(!isAdmin) return;
+        if(confirm("RESET SEMUA KE NOL?")) await set(ref(db, 'v3'), null);
     };
 
 </script>
